@@ -1,7 +1,6 @@
+/* [Keep all your existing imports and root variables] */
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&display=swap');
-
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Host+Grotesk:ital,wght@0,300..800;1,300..800&display=swap');
-
 
 :root {
     --fg: #241910;
@@ -16,7 +15,43 @@
 
 body {
     font-family: "DM Mono", sans-serif;
+    overflow: hidden;
 }
+
+/* --- LOADER STYLES --- */
+.loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    pointer-events: none;
+}
+
+.bar {
+    width: 20.5vw;
+    height: 100vh;
+    background-color: #1a1a1a;
+    z-index: 9999;
+}
+
+.counter {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    font-size: 10rem;
+    color: #fff;
+    z-index: 10000;
+    font-family: "Host Grotesk", sans-serif;
+    font-weight: 400;
+    line-height: 1;
+    pointer-events: none;
+}
+/* --------------------- */
 
 img {
     width: 100%;
@@ -29,6 +64,12 @@ h1 {
     font-size: 3rem;
     font-weight: 400;
     line-height: 1.1;
+}
+
+/* NEW: Ensures words behave correctly when split */
+.h1 span {
+    display: inline-block;
+    overflow: hidden; /* Clean cut for transform */
 }
 
 p {
@@ -45,24 +86,24 @@ a {
     color: var(--fg);
 }
 
-btn {
+.btn {
     padding: 0.75rem 1.5rem;
     border-radius: 0.25rem;
 }
 
-btn.primary {
+.btn.primary {
     background-color: var(--bg);
 }
 
-btn.primary a {
+.btn.primary a {
     color: var(--fg);
 }
 
-btn.secondary{
+.btn.secondary{
     background-color: var(--bg);
 }
 
-btn.secondary a {
+.btn.secondary a {
     background-color: var(--fg);
 }
 
@@ -173,8 +214,7 @@ canvas {
 }
 
 .client-logos .client-logo {
-
-flex: 1;
+    flex: 1;
 }
 
 .client-logos .client-logo img{
@@ -204,12 +244,10 @@ flex: 1;
     h1 {
         font-size: 2rem;
     }
-
     nav .nav-links,
     nav .nav-buttons {
         display: none;
     }
-
     .header h1, .client-logos, .hero-img-container {
         width: calc(100% - 4rem);
     }
