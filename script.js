@@ -23,18 +23,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const h1Element = document.querySelector(".h1");
 
     // --- DYNAMIC TEXT SPLITTER ---
-    // This splits your text into words automatically so you can change the HTML freely
+    // Splits text into spans so animation adapts to any word count
     if (h1Element) {
         const text = h1Element.textContent;
         const words = text.split(" ");
-        h1Element.innerHTML = ""; // Clear existing text
+        h1Element.innerHTML = "";
         words.forEach(word => {
             const span = document.createElement("span");
-            span.textContent = word + "\u00A0"; // Add word + non-breaking space
+            span.textContent = word + "\u00A0";
             h1Element.appendChild(span);
         });
     }
-    // -----------------------------
 
     const setCanvasSize = () => {
         const pixelRatio = window.devicePixelRatio || 1;
@@ -48,7 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const frameCount = 209;
     const currentFrame = (index) =>
-        `/Frames/frame_${(index + 1).toString().padStart(3, "0")}.jpg`;
+        `/frames/frame_${(index + 1).toString().padStart(3, "0")}.jpg`;
 
     let images = [];
     let videoFrames = { frame: 0 };
@@ -125,16 +124,21 @@ document.addEventListener("DOMContentLoaded", () => {
             stagger: { amount: 0.5 },
             ease: "power4.inOut"
         })
-        // --- NEW WORD-BY-WORD ANIMATION ---
+        // --- NEW: Frame (Canvas) Animation ---
+        .from("canvas", {
+            duration: 2,
+            y: 100,    // Slides up slightly
+            ease: "power4.inOut"
+        }, "-=1.5") // Syncs with bars lifting
+
+        // --- Existing Text Animation (Unchanged) ---
         .from(".h1 span", {
             duration: 1.5,
-            y: 150, // Slide up from bottom
+            y: 150,
             opacity: 0,
-            stagger: 0.1, // Stagger each word by 0.1s
+            stagger: 0.1,
             ease: "power4.out"
-        }, "-=1.0") // Overlap with curtain
-
-        // --- ANIMATE TRUSTED BY & LOGOS ---
+        }, "-=1.0")
         .from(".header p", {
             duration: 1,
             y: 20,
@@ -145,7 +149,7 @@ document.addEventListener("DOMContentLoaded", () => {
             duration: 1,
             y: 20,
             opacity: 0,
-            stagger: 0.1, // One logo after another
+            stagger: 0.1,
             ease: "power2.out"
         }, "-=0.8");
     };
