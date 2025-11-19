@@ -48,7 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const frameCount = 209;
     const currentFrame = (index) =>
-        `/Frames/frame_${(index + 1).toString().padStart(3, "0")}.webp`;
+        `/Frames/frame_${(index + 1).toString().padStart(3, "0")}.jpg`;
 
     let images = [];
     let videoFrames = { frame: 0 };
