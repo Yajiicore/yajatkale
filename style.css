@@ -109,7 +109,7 @@ a {
 }
 
 .btn.secondary a {
-    background-color: var(--fg);
+    color: var(--fg);
 }
 
 nav {
