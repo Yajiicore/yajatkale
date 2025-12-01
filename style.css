@@ -1,10 +1,15 @@
-/* [Keep all your existing imports and root variables] */
+/* [Keep existing imports] */
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Host+Grotesk:ital,wght@0,300..800;1,300..800&display=swap');
 
 :root {
     --fg: #241910;
     --bg: #fefbf4;
+}
+
+/* --- 1. THE 90% SCALE FIX --- */
+html {
+    font-size: 14.5px; /* Scales the whole site down to ~90% */
 }
 
 * {
@@ -51,13 +56,8 @@ body {
     line-height: 1;
     pointer-events: none;
 }
-/* --------------------- */
 
-.h1 span {
-    display: inline-block;
-    overflow: hidden;
-}
-
+/* --- GENERAL STYLES --- */
 img {
     width: 100%;
     height: 100%;
@@ -71,10 +71,9 @@ h1 {
     line-height: 1.1;
 }
 
-/* NEW: Ensures words behave correctly when split */
 .h1 span {
     display: inline-block;
-    overflow: hidden; /* Clean cut for transform */
+    overflow: hidden;
 }
 
 p {
@@ -99,28 +98,24 @@ a {
 .btn.primary {
     background-color: var(--bg);
 }
+.btn.primary a { color: var(--fg); }
+.btn.secondary { background-color: var(--bg); }
+.btn.secondary a { color: var(--fg); }
 
-.btn.primary a {
-    color: var(--fg);
-}
-
-.btn.secondary{
-    background-color: var(--bg);
-}
-
-.btn.secondary a {
-    color: var(--fg);
-}
-
+/* --- NAVIGATION --- */
 nav {
     position: fixed;
-    width: 100vw;
+    top: 0;
+    left: 0;
+    width: 100%; /* Changed to 100% to avoid scrollbars */
     padding: 1.5rem 2rem;
     display: flex;
+    justify-content: space-between; /* Ensures Logo stays left, Menu right */
     align-items: center;
-    gap: 2rem;
     will-change: opacity;
-    z-index: 2;
+    z-index: 100;
+    background-color: transparent;
+    gap: 2rem;
 }
 
 nav > div {
@@ -154,6 +149,57 @@ nav .nav-buttons {
     justify-content: flex-end;
 }
 
+/* --- 2. HAMBURGER MENU (MOBILE) --- */
+.hamburger {
+    display: none; /* Hidden on desktop */
+    flex-direction: column;
+    gap: 6px;
+    cursor: pointer;
+    z-index: 101;
+    width: 30px;
+    align-items: flex-end;
+}
+
+.hamburger .line {
+    width: 100%;
+    height: 2px;
+    background-color: var(--fg);
+    transition: all 0.3s ease;
+}
+
+/* --- 3. MOBILE MENU OVERLAY --- */
+.mobile-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--bg);
+    z-index: 99; /* Below the hamburger button */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transform: translateY(-100%); /* Hidden by default */
+    opacity: 0;
+    pointer-events: none;
+}
+
+.mobile-nav-links {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+}
+
+.mobile-nav-links a {
+    font-family: "Host Grotesk";
+    font-size: 3rem;
+    color: var(--fg);
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+/* --- SECTIONS --- */
 section {
     position: relative;
     width: 100%;
@@ -177,7 +223,7 @@ canvas {
     object-fit: cover;
 }
 
-.hero-content{
+.hero-content {
     position: absolute;
     top: 25%;
     left: 50%;
@@ -222,11 +268,11 @@ canvas {
     flex: 1;
 }
 
-.client-logos .client-logo img{
+.client-logos .client-logo img {
     object-fit: contain;
 }
 
-.hero-img-container{
+.hero-img-container {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -245,15 +291,65 @@ canvas {
     will-change: transform, opacity;
 }
 
-@media (max-width :1000px) {
-    h1 {
-        font-size: 2rem;
-    }
+/* --- 4. RESPONSIVE FIXES (MOBILE) --- */
+@media (max-width: 1000px) {
+    /* Navbar fixes */
     nav .nav-links,
     nav .nav-buttons {
         display: none;
     }
-    .header h1, .client-logos, .hero-img-container {
-        width: calc(100% - 4rem);
+
+    nav {
+        justify-content: space-between;
+        padding: 1.5rem;
+    }
+
+    /* Stop logo from expanding invisibly */
+    nav .logo {
+        flex: unset;
+    }
+
+    nav > div {
+        flex: unset;
+    }
+
+    .hamburger {
+        display: flex;
+    }
+
+    /* Content scaling */
+    h1 {
+        font-size: 2rem;
+        line-height: 1.2;
+    }
+
+    .header h1 {
+        width: 100%;
+        padding: 0 1rem;
+    }
+
+    .client-logos {
+        width: 80%;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .client-logos .client-logo img {
+        height: 40px;
+        width: auto;
+    }
+
+    .hero-content {
+        top: 40%;
+        width: 100%;
+    }
+
+    /* Hide heavy 3D element on mobile */
+    .hero-img-container {
+        display: none;
+    }
+
+    .counter {
+        font-size: 5rem;
     }
 }

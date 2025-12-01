@@ -23,7 +23,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const h1Element = document.querySelector(".h1");
 
     // --- DYNAMIC TEXT SPLITTER ---
-    // Splits text into spans so animation adapts to any word count
     if (h1Element) {
         const text = h1Element.textContent;
         const words = text.split(" ");
@@ -45,43 +44,68 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     setCanvasSize();
 
+    // --- SMART LOADER SETUP ---
     const frameCount = 209;
     const currentFrame = (index) =>
         `/Frames/frame_${(index + 1).toString().padStart(3, "0")}.jpg`;
 
-    let images = [];
+    let images = new Array(frameCount).fill(null);
     let videoFrames = { frame: 0 };
-    let imagesToLoad = frameCount;
-    let totalImages = frameCount;
 
-    const onLoad = () => {
-        imagesToLoad--;
+    // We only wait for the first 50 frames to start the site (Fast Load)
+    const preloadCount = 50;
+    let imagesLoadedCount = 0;
+    let isAnimationStarted = false;
 
-        if (counterElement) {
-            const loadedCount = totalImages - imagesToLoad;
-            const progress = Math.round((loadedCount / totalImages) * 100);
-            counterElement.textContent = progress;
-        }
+    const loadSingleImage = (index) => {
+        const img = new Image();
+        img.src = currentFrame(index);
+        img.onload = () => {
+            images[index] = img;
+            imagesLoadedCount++;
 
-        if (imagesToLoad === 0) {
-            startAnimation();
-        }
+            // Update counter based on the critical batch
+            if (index < preloadCount && counterElement) {
+                const progress = Math.round((imagesLoadedCount / preloadCount) * 100);
+                counterElement.textContent = Math.min(progress, 100);
+
+                // If critical batch is done, start site
+                if (imagesLoadedCount === preloadCount) {
+                    startAnimation();
+                    loadBackgroundImages(); // Load the rest silently
+                }
+            }
+        };
+        img.onerror = () => {
+            // Keep going even if error
+             imagesLoadedCount++;
+             if (index < preloadCount && imagesLoadedCount === preloadCount) {
+                 startAnimation();
+                 loadBackgroundImages();
+             }
+        };
     };
 
-    for (let i = 0; i < frameCount; i++) {
-        const img = new Image();
-        img.onload = onLoad;
-        img.onerror = function () { onLoad.call(this); };
-        img.src = currentFrame(i);
-        images.push(img);
+    // 1. Load critical batch
+    for (let i = 0; i < preloadCount; i++) {
+        loadSingleImage(i);
     }
+
+    // 2. Load the rest in background
+    const loadBackgroundImages = () => {
+        for (let i = preloadCount; i < frameCount; i++) {
+            loadSingleImage(i);
+        }
+    };
 
     const render = () => {
         const canvasWidth = window.innerWidth;
         const canvasHeight = window.innerHeight;
         context.clearRect(0, 0, canvasWidth, canvasHeight);
 
-        const img = images[videoFrames.frame];
+        const index = Math.round(videoFrames.frame);
+        const img = images[index];
+
         if (img && img.complete && img.naturalWidth > 0) {
             const imageAspect = img.naturalWidth / img.naturalHeight;
             const canvasAspect = canvasWidth / canvasHeight;
@@ -103,6 +127,8 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const startAnimation = () => {
+        if (isAnimationStarted) return;
+        isAnimationStarted = true;
         render();
 
         const tl = gsap.timeline({
@@ -113,45 +139,12 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
 
-        tl.to(".counter", {
-            duration: 0.25,
-            opacity: 0,
-            delay: 0.5
-        })
-        .to(".bar", {
-            duration: 1.5,
-            height: 0,
-            stagger: { amount: 0.5 },
-            ease: "power4.inOut"
-        })
-        // --- NEW: Frame (Canvas) Animation ---
-        .from("canvas", {
-            duration: 2,
-            y: 100,    // Slides up slightly
-            ease: "power4.inOut"
-        }, "-=1.5") // Syncs with bars lifting
-
-        // --- Existing Text Animation (Unchanged) ---
-        .from(".h1 span", {
-            duration: 1.5,
-            y: 150,
-            opacity: 0,
-            stagger: 0.1,
-            ease: "power4.out"
-        }, "-=1.0")
-        .from(".header p", {
-            duration: 1,
-            y: 20,
-            opacity: 0,
-            ease: "power2.out"
-        }, "-=1.0")
-        .from(".client-logo", {
-            duration: 1,
-            y: 20,
-            opacity: 0,
-            stagger: 0.1,
-            ease: "power2.out"
-        }, "-=0.8");
+        tl.to(".counter", { duration: 0.25, opacity: 0, delay: 0.5 })
+          .to(".bar", { duration: 1.5, height: 0, stagger: { amount: 0.5 }, ease: "power4.inOut" })
+          .from("canvas", { duration: 2, y: 100, ease: "power4.inOut" }, "-=1.5")
+          .from(".h1 span", { duration: 1.5, y: 150, opacity: 0, stagger: 0.1, ease: "power4.out" }, "-=1.0")
+          .from(".header p", { duration: 1, y: 20, opacity: 0, ease: "power2.out" }, "-=1.0")
+          .from(".client-logo", { duration: 1, y: 20, opacity: 0, stagger: 0.1, ease: "power2.out" }, "-=0.8");
     };
 
     const setupScrollTrigger = () => {
@@ -211,4 +204,45 @@ document.addEventListener("DOMContentLoaded", () => {
         render();
         ScrollTrigger.refresh();
     });
+
+    // --- MOBILE MENU LOGIC ---
+    const hamburger = document.querySelector(".hamburger");
+    const mobileMenu = document.querySelector(".mobile-menu");
+    const mobileLinks = document.querySelectorAll(".mobile-nav-links a");
+    let isMenuOpen = false;
+
+    if (hamburger && mobileMenu) {
+        const menuTl = gsap.timeline({ paused: true });
+
+        // Timeline: Slide Menu Down -> Fade In Links
+        menuTl.to(mobileMenu, {
+            yPercent: 100, // Slides from -100% (hidden) to 0% (visible)
+            opacity: 1,
+            duration: 0.8,
+            ease: "power4.inOut",
+            pointerEvents: "all"
+        })
+        .to(mobileLinks, {
+            y: 0,
+            opacity: 1,
+            stagger: 0.1,
+            duration: 0.6,
+            ease: "power2.out"
+        }, "-=0.4");
+
+        hamburger.addEventListener("click", () => {
+            if (!isMenuOpen) {
+                menuTl.play();
+                // Turn Hamburger into X
+                gsap.to(".line-1", { rotate: 45, y: 4, background: "#241910" });
+                gsap.to(".line-2", { rotate: -45, y: -4, background: "#241910" });
+            } else {
+                menuTl.reverse();
+                // Turn X back to Hamburger
+                gsap.to(".line-1", { rotate: 0, y: 0, background: "#241910" });
+                gsap.to(".line-2", { rotate: 0, y: 0, background: "#241910" });
+            }
+            isMenuOpen = !isMenuOpen;
+        });
+    }
 });
